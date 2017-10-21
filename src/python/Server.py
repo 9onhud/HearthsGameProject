@@ -36,26 +36,29 @@ class Player:
 def play_game():
     def deal_cards():
         def make_cards():
-            cards = []
             for rank in "23456789TJQKA":
                 for suit in "CDHS":
                     cards.append(rank + suit)
-            return cards
 
         # random card and send to each player 13 cards (13 Send)
         def deal():
             for i in range(13):
                 for j in range(4):
                     card = SystemRandom().choice(cards)
-                    print("Send : "+card+" To : "+str(j))
+                    print("Send : " + card + " To : " + str(j))
                     players[j].send(card)
                     cards.remove(card)
-                    time.sleep(0.05)        # wait because sometime data send too fast
+                    time.sleep(0.05)  # wait because sometime data send too fast
 
-        cards = make_cards()
+        cards = []
+        make_cards()
         deal()
 
-    deal_cards()    # 13 send
+    def exchange_cards():
+        pass
+
+    deal_cards()  # 13 send
+    exchange_cards()
 
 
 def start_server():
@@ -84,9 +87,13 @@ def start_server():
 
     connect_client()  # wait to connect 4 clients (1 Receive)
     send_ready()  # send ready to client (1 Send)
-    play_game()  # start game
 
 
 if __name__ == "__main__":
     players = []
     start_server()
+
+    game_round = 1
+    while True:
+        play_game()  # start game
+        game_round += 1
