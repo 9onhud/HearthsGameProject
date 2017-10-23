@@ -1,6 +1,7 @@
 import socket
 from random import SystemRandom
 import time
+from threading import Thread
 
 
 class Player:
@@ -16,6 +17,32 @@ class Player:
         return self.client.recv(1024).decode()
 
 
+class ReceiveThread(Thread):
+    def __init__(self, client, number_of_receive):
+        Thread.__init__(self)
+        self.client = client
+        self.number_of_receive = number_of_receive
+        self.inputs = []
+        self.set_return_complete = False
+
+    def run(self):
+        print("In Run")
+        self.set_return()
+
+    def set_return(self):
+        print("In set")
+        for i in range(self.number_of_receive):
+            s = self.client.recv(1024).decode()
+            print(s)
+            self.inputs.append(s)
+        self.set_return_complete = True
+        print("OK return_complete is "+self.set_return_complete)
+
+    def get_return(self):
+        while True:
+            if self.set_return_complete:
+                print("In if")
+                return self.inputs
 # def transfer_data(client):
 #     while True:
 #         data = client.recv(1024).decode()
@@ -34,6 +61,7 @@ class Player:
 
 
 def play_game():
+    # deal 13 cards to each player
     def deal_cards():
         def make_cards():
             for rank in "23456789TJQKA":
@@ -54,11 +82,35 @@ def play_game():
         make_cards()
         deal()
 
+    # in game rule if round%4 != 0 , all player must exchange cards
     def exchange_cards():
-        pass
+        # send to all player that this game have exchange state
+        def send_exchange_status():
+            for player in players:
+                player.send("Exchange")
+
+        def give_exchange_cards():
+            threads = []
+            for player in players:
+                thread = ReceiveThread(player.client, 3)
+                threads.append(thread)
+                thread.start()
+                print("Start")
+
+            print(len(threads))
+            cards_after_exchange = []
+            for thread in threads:
+                print(thread.set_return_complete)
+                cards_after_exchange.append(thread.get_return())
+
+            print(cards_after_exchange)
+
+        if game_round % 4 != 0:
+            send_exchange_status()
+            give_exchange_cards()
 
     deal_cards()  # 13 send
-    exchange_cards()
+    exchange_cards()    # 1 send
 
 
 def start_server():
@@ -74,7 +126,7 @@ def start_server():
     # send to all client that all client are connection
     def send_ready():
         for player in players:
-            player.send("ready")
+            player.send("Ready")
 
     port = 5098
     player_number = 4
