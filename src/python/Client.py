@@ -21,6 +21,10 @@ def exchange_cards():
 
     # for card_exchange in cards_exchange:  # (3 send)
     #     client_socket.send(card_exchange.encode())
+    cards_from_other = []
+    for i in range(3):
+        cards_from_other.append(client_socket.recv(1024).decode())
+    print(cards_from_other)
 
 
 def start_client():

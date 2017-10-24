@@ -85,11 +85,11 @@ def play_game():
     # in game rule if round%4 != 0 , all player must exchange cards
     def exchange_cards():
         # send to all player that this game have exchange state
-        def send_exchange_status():
+        def send_exchange_status():         # (1 Send)
             for player in players:
                 player.send("Exchange")
 
-        def give_exchange_cards():
+        def give_exchange_cards():          # (3 Receive)
             threads = []
             for player in players:
                 thread = ReceiveThread(player.client, 3)
@@ -98,16 +98,22 @@ def play_game():
                 print("Start")
 
             print(len(threads))
-            cards_after_exchange = []
             for thread in threads:
                 print(thread.set_return_complete)
                 cards_after_exchange.append(thread.get_return())
 
             print(cards_after_exchange)
 
+        def send_exchange_cards():          # (3 Send)
+            for i in range(len(players)):
+                for j in range(len(cards_after_exchange[0])):
+                    players[i].send(cards_after_exchange[i-(game_round % 4)][j])
+
         if game_round % 4 != 0:
+            cards_after_exchange = []
             send_exchange_status()
             give_exchange_cards()
+            send_exchange_cards()
 
     deal_cards()  # 13 send
     exchange_cards()    # 1 send
