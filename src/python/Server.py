@@ -1,6 +1,5 @@
 import socket
 from random import SystemRandom
-import time
 from threading import Thread
 
 
@@ -36,13 +35,15 @@ class ReceiveThread(Thread):
             print(s)
             self.inputs.append(s)
         self.set_return_complete = True
-        print("OK return_complete is "+str(self.set_return_complete))
+        print("OK return_complete is " + str(self.set_return_complete))
 
     def get_return(self):
         while True:
             if self.set_return_complete:
                 print("In if")
                 return self.inputs
+
+
 # def transfer_data(client):
 #     while True:
 #         data = client.recv(1024).decode()
@@ -74,9 +75,12 @@ def play_game():
                 for j in range(4):
                     card = SystemRandom().choice(cards)
                     print("Send : " + card + " To : " + str(j))
+                    if card == "2C":        # in game rule, player who have "2C" card is the game beginner
+                        beginner = j
+
                     players[j].send(card)
                     cards.remove(card)
-                    time.sleep(0.05)  # wait because sometime data send too fast
+                    # time.sleep(0.05)  # wait because sometime data send too fast
 
         cards = []
         make_cards()
@@ -85,11 +89,11 @@ def play_game():
     # in game rule if round%4 != 0 , all player must exchange cards
     def exchange_cards():
         # send to all player that this game have exchange state
-        def send_exchange_status():         # (1 Send)
+        def send_exchange_status():  # (1 Send)
             for player in players:
                 player.send("Exchange")
 
-        def give_exchange_cards():          # (3 Receive)
+        def give_exchange_cards():  # (3 Receive)
             threads = []
             for player in players:
                 thread = ReceiveThread(player.client, 3)
@@ -104,10 +108,31 @@ def play_game():
 
             print(cards_after_exchange)
 
-        def send_exchange_cards():          # (3 Send)
-            for i in range(len(players)):
-                for j in range(len(cards_after_exchange[0])):
-                    players[i].send(cards_after_exchange[i-(game_round % 4)][j])
+        # 3 if in this function is just make from rule of game
+        def send_exchange_cards():  # (3 Send)
+            if game_round % 4 == 1:
+                for i in range(len(players)):
+                    for j in range(len(cards_after_exchange[0])):
+                        players[i].send(cards_after_exchange[i - 1][j])
+
+                        if "2C" == cards_after_exchange[i - 1][j]:  # in game rule, player who have "2C" card is the game beginner
+                            beginner = i
+
+            elif game_round % 4 == 2:
+                for i in range(len(players)):
+                    for j in range(len(cards_after_exchange[0])):
+                        players[i].send(cards_after_exchange[(i + 1) % 4][j])
+
+                        if "2C" == cards_after_exchange[(i + 1) % 4][j]:    # in game rule, player who have "2C" card is the game beginner
+                            beginner = i
+
+            elif game_round % 4 == 3:
+                for i in range(len(players)):
+                    for j in range(len(cards_after_exchange[0])):
+                        players[i].send(cards_after_exchange[(i + 2) % 4][j])
+
+                        if "2C" == cards_after_exchange[(i + 2) % 4][j]:    # in game rule, player who have "2C" card is the game beginner
+                            beginner = i
 
         if game_round % 4 != 0:
             cards_after_exchange = []
@@ -115,8 +140,21 @@ def play_game():
             give_exchange_cards()
             send_exchange_cards()
 
+    def play():
+        def find_forced_card():
+            if play_round == 1:
+                forced_card = "2C"
+            else:
+                pass
+            # don't complete yet but now i want to sleep. GoodBye MyCode <3
+        players[beginner].send("Your Turn")
+
+    beginner = 0
+    play_round = 1      # play_round is sub round of game_round
     deal_cards()  # 13 send
-    exchange_cards()    # 1 send
+    exchange_cards()  # 1 send
+    play()
+
 
 
 def start_server():

@@ -4,7 +4,7 @@ import socket
 def give_cards():
     cards = []
     for i in range(13):
-        card = client_socket.recv(1024).decode()  # (13 Receive)
+        card = client_socket.recv(2).decode()  # (13 Receive)
         print("Give a " + card + " card.")
         cards.append(card)
     return cards
@@ -23,7 +23,7 @@ def exchange_cards():
     #     client_socket.send(card_exchange.encode())
     cards_from_other = []
     for i in range(3):
-        cards_from_other.append(client_socket.recv(1024).decode())
+        cards_from_other.append(client_socket.recv(2).decode())     # parameter 2 is mean maximum string size in byte (1str = 1byte)
     print(cards_from_other)
 
 
@@ -46,6 +46,8 @@ def start_client():
                 # send cards to MainGame to set GameGUI
             elif status == "Exchange":
                 exchange_cards()        # (3 Send)
+            elif status == "Your Turn":
+                forced_card = client_socket.recv(1024).decode()     # (1 Receive)
 
 
 
