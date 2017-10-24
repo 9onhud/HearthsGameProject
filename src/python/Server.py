@@ -36,7 +36,7 @@ class ReceiveThread(Thread):
             print(s)
             self.inputs.append(s)
         self.set_return_complete = True
-        print("OK return_complete is "+self.set_return_complete)
+        print("OK return_complete is "+str(self.set_return_complete))
 
     def get_return(self):
         while True:

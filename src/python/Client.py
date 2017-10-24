@@ -16,10 +16,11 @@ def exchange_cards():
 
     # Just for Test
     for i in range(3):
-        cards_exchange.append(input("Card Exchange: "))
+        # cards_exchange.append(input("Card Exchange: "))
+        client_socket.send(input("Card Exchange: ").encode())
 
-    for card_exchange in cards_exchange:  # (3 send)
-        client_socket.send(card_exchange.encode())
+    # for card_exchange in cards_exchange:  # (3 send)
+    #     client_socket.send(card_exchange.encode())
 
 
 def start_client():
