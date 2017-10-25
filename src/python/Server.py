@@ -12,8 +12,8 @@ class Player:
     def send(self, data):
         self.client.send(data.encode())
 
-    def receive(self):
-        return self.client.recv(1024).decode()
+    def receive(self, size):
+        return self.client.recv(size).decode()
 
 
 class ReceiveThread(Thread):
@@ -75,12 +75,11 @@ def play_game():
                 for j in range(4):
                     card = SystemRandom().choice(cards)
                     print("Send : " + card + " To : " + str(j))
-                    if card == "2C":        # in game rule, player who have "2C" card is the game beginner
+                    if card == "2C":  # in game rule, player who have "2C" card is the game beginner
                         beginner = j
 
                     players[j].send(card)
                     cards.remove(card)
-                    # time.sleep(0.05)  # wait because sometime data send too fast
 
         cards = []
         make_cards()
@@ -115,7 +114,8 @@ def play_game():
                     for j in range(len(cards_after_exchange[0])):
                         players[i].send(cards_after_exchange[i - 1][j])
 
-                        if "2C" == cards_after_exchange[i - 1][j]:  # in game rule, player who have "2C" card is the game beginner
+                        if "2C" == cards_after_exchange[i - 1][
+                            j]:  # in game rule, player who have "2C" card is the game beginner
                             beginner = i
 
             elif game_round % 4 == 2:
@@ -123,7 +123,8 @@ def play_game():
                     for j in range(len(cards_after_exchange[0])):
                         players[i].send(cards_after_exchange[(i + 1) % 4][j])
 
-                        if "2C" == cards_after_exchange[(i + 1) % 4][j]:    # in game rule, player who have "2C" card is the game beginner
+                        if "2C" == cards_after_exchange[(i + 1) % 4][
+                            j]:  # in game rule, player who have "2C" card is the game beginner
                             beginner = i
 
             elif game_round % 4 == 3:
@@ -131,7 +132,8 @@ def play_game():
                     for j in range(len(cards_after_exchange[0])):
                         players[i].send(cards_after_exchange[(i + 2) % 4][j])
 
-                        if "2C" == cards_after_exchange[(i + 2) % 4][j]:    # in game rule, player who have "2C" card is the game beginner
+                        if "2C" == cards_after_exchange[(i + 2) % 4][
+                            j]:  # in game rule, player who have "2C" card is the game beginner
                             beginner = i
 
         if game_round % 4 != 0:
@@ -141,20 +143,46 @@ def play_game():
             send_exchange_cards()
 
     def play():
-        def find_forced_card():
-            if play_round == 1:
-                forced_card = "2C"
+        def set_first_card():
+            if i == 1:
+                return "2C"
             else:
-                pass
-            # don't complete yet but now i want to sleep. GoodBye MyCode <3
-        players[beginner].send("Your Turn")
+                return ""
 
-    beginner = 0
-    play_round = 1      # play_round is sub round of game_round
-    deal_cards()  # 13 send
-    exchange_cards()  # 1 send
-    play()
+        def check_who_give():
+            for i in range(len(cards)):
+                if cards[i][1] == first_card[1]:
+                    # if cards[i][0]
+                    pass
+            # set can_play_heart
 
+        for i in range(13):  # each player have 13 cards then play 13 round
+            cards = []
+
+            first_card = set_first_card()
+
+            for j in range(len(players)):
+                players[(beginner + j) % 4].send("Your Turn")
+
+                players[(beginner + j) % 4].send(first_card)
+                players[(beginner + j) % 4].send(can_play_heart)
+
+                cards.append(players[(beginner + j) % 4].receive(2))  # parameter 2 is mean 1card = 2character
+
+            check_who_give()
+            play_round += 1
+
+    while True:
+        beginner = 0
+        play_round = 1  # play_round is sub round of game_round
+        deal_cards()  # 13 send
+        exchange_cards()  # 1 send
+
+        can_play_heart = "No"
+        play()  # until score more than or equal 100
+
+        # if score >= 100:
+        #     break
 
 
 def start_server():

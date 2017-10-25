@@ -23,12 +23,16 @@ def exchange_cards():
     #     client_socket.send(card_exchange.encode())
     cards_from_other = []
     for i in range(3):
-        cards_from_other.append(client_socket.recv(2).decode())     # parameter 2 is mean maximum string size in byte (1str = 1byte)
+        cards_from_other.append(
+            client_socket.recv(2).decode())  # parameter 2 is mean maximum string size in byte (1str = 1byte)
     print(cards_from_other)
 
 
-def start_client():
+def check_can_put():
+    pass
 
+
+def start_client():
     def give_status():
         return client_socket.recv(1024).decode()
 
@@ -42,15 +46,17 @@ def start_client():
         while True:
             status = give_status()
             if status == "Ready":
-                cards = give_cards()        # (13 Receive)
+                cards = give_cards()  # (13 Receive)
                 # send cards to MainGame to set GameGUI
             elif status == "Exchange":
-                exchange_cards()        # (3 Send)
+                exchange_cards()  # (3 Send)
             elif status == "Your Turn":
-                forced_card = client_socket.recv(1024).decode()     # (1 Receive)
+                first_card = client_socket.recv(1024).decode()  # (1 Receive)
+                can_play_heart = client_socket.recv(1024).decode()  # (1 Receive)
 
-
-
+                # check input from mainGame. 1. if it don't have card in condition then can send whatever you want to send
+                # 2. if it is in condition then give it and send to server
+                # 3. if it is not in condition then loop give until it is in condition
 
     except Exception as e:
         print("You aren't connect.")
